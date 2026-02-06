@@ -1,7 +1,3 @@
-# Crossplane v2 note:
-# Per Crossplane v2 docs, XRDs use `apiVersion: apiextensions.crossplane.io/v2`
-# and you should set `spec.scope` (recommended default in v2 is `Namespaced`).
-# See: https://docs.crossplane.io/latest/composition/composite-resource-definitions/
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
@@ -10,8 +6,8 @@ spec:
   scope: Namespaced
   group: example.io
   names:
-    kind: XAzureSubscription
-    plural: xazuresubscriptions
+    kind: AzureSubscription
+    plural: azuresubscriptions
   versions:
     - name: v1alpha1
       served: true
@@ -28,51 +24,13 @@ spec:
                   properties:
                     subscriptionName:
                       type: string
-                      description: Name of the Azure Subscription
-                    billingAccountId:
+                      description: "Name of the Azure Subscription"
+                    displayName:
                       type: string
-                      description: Azure Billing Account ID
-                    workload:
+                      description: "Display name of the Azure Subscription"
+                    billingAccount:
                       type: string
-                      enum:
-                        - Production
-                        - DevTest
-                      description: Type of workload for the subscription
-                    environment:
+                      description: "Billing account identifier to associate with the subscription"
+                    managementGroup:
                       type: string
-                      enum:
-                        - dev
-                        - staging
-                        - prod
-                      description: Environment designation
-                    tags:
-                      type: object
-                      additionalProperties:
-                        type: string
-                      description: Additional tags for the subscription
-                    defaultResourceGroup:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        location:
-                          type: string
-                          default: westeurope
-                      required:
-                        - name
-                  required:
-                    - subscriptionName
-                    - billingAccountId
-                    - workload
-                    - environment
-              required:
-                - parameters
-            status:
-              type: object
-              properties:
-                subscriptionId:
-                  type: string
-                  description: Azure Subscription ID
-                state:
-                  type: string
-                  description: Current state of the subscription
+                      description: "Management Group ID or path to place the subscription under"

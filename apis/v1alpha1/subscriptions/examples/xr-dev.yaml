@@ -1,5 +1,5 @@
 apiVersion: example.io/v1alpha1
-kind: XAzureSubscription
+kind: AzureSubscription
 metadata:
   name: atlas-dev-subscription
   labels:
