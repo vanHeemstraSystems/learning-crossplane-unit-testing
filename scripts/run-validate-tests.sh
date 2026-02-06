@@ -21,9 +21,17 @@ echo "=========================================="
 # Pick the CLI binary name (Windows installs often use crank.exe).
 XP_BIN="${XP_BIN:-}"
 if [ -z "$XP_BIN" ]; then
-    if command -v crossplane &> /dev/null; then
+    supports_render_and_validate() {
+        local bin="$1"
+        command -v "$bin" &> /dev/null || return 1
+        "$bin" render --help > /dev/null 2>&1 || return 1
+        "$bin" beta validate --help > /dev/null 2>&1 || return 1
+        return 0
+    }
+
+    if supports_render_and_validate "crossplane"; then
         XP_BIN="crossplane"
-    elif command -v crank &> /dev/null; then
+    elif supports_render_and_validate "crank"; then
         XP_BIN="crank"
     fi
 fi
@@ -47,8 +55,8 @@ fi
 # Check if Crossplane CLI is installed
 if [ -z "$XP_BIN" ]; then
     echo -e "${RED}❌ Crossplane CLI not found${NC}"
+    echo "This repo requires a CLI that supports: render + beta validate"
     echo "Install from: https://docs.crossplane.io/latest/cli/"
-    echo "Install with: curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh"
     exit 1
 fi
 
