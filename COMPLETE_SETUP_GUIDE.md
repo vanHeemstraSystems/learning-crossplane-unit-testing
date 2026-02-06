@@ -25,12 +25,12 @@ For a working setup in **under 5 minutes**, you need just **9 critical files**:
 
 ### Step 1: Download Critical Files
 
-1. **README-v2.md** → `README.md`
+1. **README.md** → `README.md`
 2. **xrd.yml** → `apis/v1alpha1/subscriptions/xrd.yml`
 3. **composition.yml** → `apis/v1alpha1/subscriptions/composition.yml`
 4. **functions.yml** → `apis/v1alpha1/subscriptions/functions.yml`
 5. **xr-dev.yml** → `apis/v1alpha1/subscriptions/examples/xr-dev.yml`
-6. **setup-test-env-v2.sh** → `scripts/setup-test-env.sh`
+6. **setup-test-env-v2.sh** → `scripts/setup-test-env-v2.sh`
 7. **run-render-tests.sh** → `scripts/run-render-tests.sh`
 8. **run-validate-tests.sh** → `scripts/run-validate-tests.sh`
 9. **crossplane-cli-tests.yml** → `.github/workflows/crossplane-cli-tests.yml`
@@ -51,7 +51,7 @@ mkdir -p .github/workflows
 ### Step 3: Make Scripts Executable
 
 ```bash
-chmod +x scripts/setup-test-env.sh
+chmod +x scripts/setup-test-env-v2.sh
 chmod +x scripts/run-render-tests.sh
 chmod +x scripts/run-validate-tests.sh
 ```
@@ -59,7 +59,7 @@ chmod +x scripts/run-validate-tests.sh
 ### Step 4: Install Crossplane CLI
 
 ```bash
-./scripts/setup-test-env.sh
+./scripts/setup-test-env-v2.sh
 ```
 
 ### Step 5: Run Your First Test
@@ -83,7 +83,7 @@ For the **full experience with all features**, download all **34 files**:
 ### Core Files (14 files)
 
 **Documentation:**
-- README-v2.md → README.md
+- README.md → README.md
 - QUICKSTART.md → QUICKSTART.md
 - DIRECTORY_STRUCTURE.md → DIRECTORY_STRUCTURE.md
 - FILE_MAPPING.md → FILE_MAPPING.md
@@ -97,10 +97,10 @@ For the **full experience with all features**, download all **34 files**:
 - xr-prod.yml → apis/v1alpha1/subscriptions/examples/xr-prod.yml
 
 **Primary Test Scripts:**
-- setup-test-env-v2.sh → scripts/setup-test-env.sh
+- setup-test-env-v2.sh → scripts/setup-test-env-v2.sh
 - run-render-tests.sh → scripts/run-render-tests.sh
 - run-validate-tests.sh → scripts/run-validate-tests.sh
-- run-all-tests-v2.sh → scripts/run-all-tests.sh
+- run-all-tests-v2.sh → scripts/run-all-tests-v2.sh
 
 ### Enhanced Features (20 files)
 
@@ -177,7 +177,7 @@ For the **full experience with all features**, download all **34 files**:
 
 ```
 learning-crossplane-unit-testing/
-├── README.md                          ← README-v2.md
+├── README.md
 ├── QUICKSTART.md                      ← QUICKSTART.md
 ├── DIRECTORY_STRUCTURE.md             ← DIRECTORY_STRUCTURE.md
 ├── FILE_MAPPING.md                    ← FILE_MAPPING.md
@@ -221,10 +221,10 @@ learning-crossplane-unit-testing/
 │                       └── subscription-schema.json
 │
 └── scripts/
-    ├── setup-test-env.sh              ← setup-test-env-v2.sh
+    ├── setup-test-env-v2.sh
     ├── run-render-tests.sh
     ├── run-validate-tests.sh
-    ├── run-all-tests.sh               ← run-all-tests-v2.sh
+    ├── run-all-tests-v2.sh
     └── validate-manifests.sh
 ```
 
@@ -251,10 +251,10 @@ chmod +x scripts/*.sh
 chmod +x apis/v1alpha1/subscriptions/tests/unit/render/*.sh
 
 # Install tools
-./scripts/setup-test-env.sh
+./scripts/setup-test-env-v2.sh
 
 # Run tests
-./scripts/run-all-tests.sh
+./scripts/run-all-tests-v2.sh
 ```
 
 ---
@@ -272,7 +272,9 @@ tree -L 2 scripts/
 
 ```bash
 crossplane --version
-# Should show: crossplane v1.14.0 or higher
+# Should show a version that includes:
+#   - `crossplane render`
+#   - `crossplane beta validate`
 ```
 
 ### 3. Test Basic Render
@@ -289,7 +291,7 @@ crossplane render \
 ### 4. Run Complete Test Suite
 
 ```bash
-./scripts/run-all-tests.sh
+./scripts/run-all-tests-v2.sh
 ```
 
 **Expected output**:
@@ -422,7 +424,7 @@ With all files downloaded and placed correctly, you have:
 ✅ Best practices from the Crossplane community  
 
 **Next Steps:**
-1. Run `./scripts/run-all-tests.sh`
+1. Run `./scripts/run-all-tests-v2.sh`
 2. Customize for your Azure resources
 3. Add more XRDs and Compositions
 4. Share with your team!

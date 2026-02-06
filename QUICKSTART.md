@@ -20,8 +20,8 @@ cd learning-crossplane-unit-testing
 
 ```bash
 # Run the setup script
-chmod +x scripts/setup-test-env.sh
-./scripts/setup-test-env.sh
+chmod +x scripts/setup-test-env-v2.sh
+./scripts/setup-test-env-v2.sh
 ```
 
 This installs:
@@ -78,8 +78,12 @@ conftest verify -p policy/
 cd /path/to/learning-crossplane-unit-testing
 
 # Run all tests
-./scripts/run-all-tests.sh
+./scripts/run-all-tests-v2.sh
 ```
+
+## Crossplane v2 note (XRD apiVersion)
+
+In Crossplane v2, XRDs use `apiVersion: apiextensions.crossplane.io/v2` and should set `spec.scope` (recommended default is `Namespaced`). See the official docs: https://docs.crossplane.io/latest/composition/composite-resource-definitions/
 
 ## Common Commands
 

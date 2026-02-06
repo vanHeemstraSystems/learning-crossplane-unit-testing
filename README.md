@@ -17,12 +17,25 @@ This repository demonstrates best practices for unit testing Crossplane v2 resou
 
 ## Prerequisites
 
-- **Crossplane CLI** v1.14+ (includes `render` and `validate` commands)
+- **Crossplane CLI** (must include `crossplane render` and `crossplane beta validate`)
 - `kubectl` CLI tool
 - Docker (for running composition functions)
 - Testing tools:
   - [conftest](https://www.conftest.dev/) - Policy testing (optional)
   - [yq](https://github.com/mikefarah/yq) - YAML processor (optional)
+
+## Crossplane v2 and XRD apiVersion (important clarification)
+
+Crossplane v2 XRDs use the Kubernetes apiVersion:
+
+```yaml
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+```
+
+This repository follows the Crossplane v2 docs and sets `spec.scope` on the XRD (recommended default is `Namespaced`).
+
+For details, see the official docs: [Composite Resource Definitions](https://docs.crossplane.io/latest/composition/composite-resource-definitions/).
 
 ## Directory Structure
 
@@ -59,10 +72,10 @@ learning-crossplane-unit-testing/
 │   ├── crossplane-cli-testing.md
 │   └── ci-cd-integration.md
 └── scripts/
-    ├── setup-test-env.sh
+    ├── setup-test-env-v2.sh
     ├── run-render-tests.sh
     ├── run-validate-tests.sh
-    └── run-all-tests.sh
+    └── run-all-tests-v2.sh
 ```
 
 ## Testing Approach
@@ -282,7 +295,7 @@ crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
 
 ```bash
 # Runs: render tests + validation + policy tests
-./scripts/run-all-tests.sh
+./scripts/run-all-tests-v2.sh
 ```
 
 ### Example Output

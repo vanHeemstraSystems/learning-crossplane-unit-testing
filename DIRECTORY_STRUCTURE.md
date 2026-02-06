@@ -44,8 +44,10 @@ learning-crossplane-unit-testing/
 │   ├── crossplane-v2-differences.md
 │   └── ci-cd-integration.md
 └── scripts/
-    ├── setup-test-env.sh
-    ├── run-all-tests.sh
+    ├── setup-test-env-v2.sh
+    ├── run-render-tests.sh
+    ├── run-validate-tests.sh
+    ├── run-all-tests-v2.sh
     └── validate-manifests.sh
 ```
 
@@ -54,7 +56,7 @@ learning-crossplane-unit-testing/
 ### Step 1: Root Level Files
 
 1. Place `README.md` in the repository root
-2. Create `.github/workflows/` directory and place `unit-tests.yml` there
+2. Create `.github/workflows/` directory and place `crossplane-cli-tests.yml` there (recommended)
 
 ### Step 2: Crossplane Resources
 
@@ -125,9 +127,17 @@ mkdir -p scripts
 ```
 
 Place these files and make them executable:
-- `setup-test-env.sh` → `scripts/setup-test-env.sh`
-- `run-all-tests.sh` → `scripts/run-all-tests.sh`
+- `setup-test-env-v2.sh` → `scripts/setup-test-env-v2.sh`
+- `run-render-tests.sh` → `scripts/run-render-tests.sh`
+- `run-validate-tests.sh` → `scripts/run-validate-tests.sh`
+- `run-all-tests-v2.sh` → `scripts/run-all-tests-v2.sh`
 - `validate-manifests.sh` → `scripts/validate-manifests.sh`
+
+### Crossplane v2 note (XRD apiVersion)
+
+XRDs in this repository use `apiVersion: apiextensions.crossplane.io/v2` and set `spec.scope` (recommended default is `Namespaced` in v2).
+
+See: https://docs.crossplane.io/latest/composition/composite-resource-definitions/
 
 Make scripts executable:
 ```bash

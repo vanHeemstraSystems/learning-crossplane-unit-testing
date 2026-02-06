@@ -19,7 +19,7 @@ This document provides the complete mapping of all files you need to place in yo
 ### 📄 Root Level Files (3 files)
 
 1. **README.md** 
-   - Download: `README-v2.md` (use the v2 version)
+   - Download: `README.md`
    - Place at: `README.md`
    - Purpose: Main documentation with Crossplane CLI focus
 
@@ -69,8 +69,8 @@ Create directory: `scripts/`
 
 10. **Setup Script (Crossplane CLI focused)**
     - Download: `setup-test-env-v2.sh`
-    - Place at: `scripts/setup-test-env.sh`
-    - Make executable: `chmod +x scripts/setup-test-env.sh`
+    - Place at: `scripts/setup-test-env-v2.sh`
+    - Make executable: `chmod +x scripts/setup-test-env-v2.sh`
 
 11. **Render Tests Runner**
     - Download: `run-render-tests.sh`
@@ -84,8 +84,8 @@ Create directory: `scripts/`
 
 13. **All Tests Runner (Crossplane CLI focused)**
     - Download: `run-all-tests-v2.sh`
-    - Place at: `scripts/run-all-tests.sh`
-    - Make executable: `chmod +x scripts/run-all-tests.sh`
+    - Place at: `scripts/run-all-tests-v2.sh`
+    - Make executable: `chmod +x scripts/run-all-tests-v2.sh`
 
 14. **Manifest Validator (Optional - for YAML syntax)**
     - Download: `validate-manifests.sh`
@@ -235,10 +235,10 @@ learning-crossplane-unit-testing/
 │                       └── subscription-schema.json  # File 27
 │
 ├── scripts/                                   # TEST SCRIPTS (RECOMMENDED)
-│   ├── setup-test-env.sh                     # File 10
+│   ├── setup-test-env-v2.sh                  # File 10
 │   ├── run-render-tests.sh                   # File 11
 │   ├── run-validate-tests.sh                 # File 12
-│   ├── run-all-tests.sh                      # File 13
+│   ├── run-all-tests-v2.sh                   # File 13
 │   └── validate-manifests.sh                 # File 14 (optional)
 │
 └── docs/                                      # DOCUMENTATION (optional)
@@ -277,7 +277,7 @@ These are the absolute minimum files needed for Crossplane CLI testing:
 3. composition.yml (File 5)
 4. functions.yml (File 6)
 5. xr-dev.yml (File 7)
-6. setup-test-env.sh (File 10)
+6. setup-test-env-v2.sh (File 10)
 7. run-render-tests.sh (File 11)
 8. run-validate-tests.sh (File 12)
 9. crossplane-cli-tests.yml (File 28)
@@ -290,7 +290,7 @@ Add these for a complete testing experience:
 
 10. xr-staging.yml (File 8)
 11. xr-prod.yml (File 9)
-12. run-all-tests.sh (File 13)
+12. run-all-tests-v2.sh (File 13)
 13. QUICKSTART.md (File 3)
 14. DIRECTORY_STRUCTURE.md (File 2)
 
@@ -329,7 +329,7 @@ crossplane render \
   apis/v1alpha1/subscriptions/functions.yml
 
 # 4. Run test suite
-./scripts/run-all-tests.sh
+./scripts/run-all-tests-v2.sh
 ```
 
 ## Common Issues and Solutions
@@ -346,7 +346,7 @@ chmod +x apis/v1alpha1/subscriptions/tests/unit/render/*.sh
 
 **Solution:**
 ```bash
-./scripts/setup-test-env.sh
+./scripts/setup-test-env-v2.sh
 # or manually:
 curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
 sudo mv crossplane /usr/local/bin/

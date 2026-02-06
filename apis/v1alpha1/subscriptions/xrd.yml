@@ -1,8 +1,13 @@
-apiVersion: apiextensions.crossplane.io/v1
+# Crossplane v2 note:
+# Per Crossplane v2 docs, XRDs use `apiVersion: apiextensions.crossplane.io/v2`
+# and you should set `spec.scope` (recommended default in v2 is `Namespaced`).
+# See: https://docs.crossplane.io/latest/composition/composite-resource-definitions/
+apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
   name: xazuresubscriptions.atlas.teamrockstars.cloud
 spec:
+  scope: Namespaced
   group: atlas.teamrockstars.cloud
   names:
     kind: XAzureSubscription
