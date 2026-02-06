@@ -1,0 +1,21 @@
+apiVersion: atlas.teamrockstars.cloud/v1alpha1
+kind: XAzureSubscription
+metadata:
+  name: atlas-staging-subscription
+  labels:
+    environment: staging
+    managed-by: crossplane
+spec:
+  parameters:
+    subscriptionName: atlas-staging
+    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
+    workload: DevTest
+    environment: staging
+    tags:
+      cost-center: "engineering"
+      project: "atlas-idp"
+      environment: "staging"
+      owner: "willem.vanheemstra"
+    defaultResourceGroup:
+      name: rg-atlas-staging-weu
+      location: westeurope

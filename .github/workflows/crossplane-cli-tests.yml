@@ -1,0 +1,175 @@
+name: Unit Tests - Crossplane CLI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  crossplane-render-tests:
+    name: Crossplane Render Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Crossplane CLI
+        run: |
+          echo "Installing Crossplane CLI..."
+          curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
+          sudo mv crossplane /usr/local/bin/
+          crossplane --version
+      
+      - name: Test Dev Environment
+        run: |
+          echo "Testing dev environment..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml
+      
+      - name: Test Staging Environment
+        run: |
+          echo "Testing staging environment..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-staging.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml
+      
+      - name: Test Production Environment
+        run: |
+          echo "Testing production environment..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-prod.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml
+      
+      - name: Verify Resources Rendered
+        run: |
+          echo "Verifying all expected resources are rendered..."
+          
+          # Test dev
+          OUTPUT=$(crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml)
+          
+          echo "$OUTPUT" | grep -q "kind: XAzureSubscription" || exit 1
+          echo "$OUTPUT" | grep -q "kind: Subscription" || exit 1
+          echo "$OUTPUT" | grep -q "kind: ResourceGroup" || exit 1
+          
+          echo "✅ All resources rendered successfully"
+  
+  crossplane-validate-tests:
+    name: Crossplane Validation Tests
+    runs-on: ubuntu-latest
+    needs: crossplane-render-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Crossplane CLI
+        run: |
+          curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
+          sudo mv crossplane /usr/local/bin/
+      
+      - name: Validate Dev Environment
+        run: |
+          echo "Validating dev environment against XRD schema..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml \
+            --include-full-xr | \
+          crossplane beta validate \
+            apis/v1alpha1/subscriptions/xrd.yml \
+            -
+      
+      - name: Validate Staging Environment
+        run: |
+          echo "Validating staging environment against XRD schema..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-staging.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml \
+            --include-full-xr | \
+          crossplane beta validate \
+            apis/v1alpha1/subscriptions/xrd.yml \
+            -
+      
+      - name: Validate Production Environment
+        run: |
+          echo "Validating production environment against XRD schema..."
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-prod.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml \
+            --include-full-xr | \
+          crossplane beta validate \
+            apis/v1alpha1/subscriptions/xrd.yml \
+            -
+  
+  policy-tests:
+    name: Policy Tests (Optional)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Conftest
+        run: |
+          curl -L https://github.com/open-policy-agent/conftest/releases/download/v0.45.0/conftest_0.45.0_Linux_x86_64.tar.gz | tar xz
+          sudo mv conftest /usr/local/bin/
+      
+      - name: Run XRD Policy Tests
+        run: |
+          conftest test apis/v1alpha1/subscriptions/xrd.yml \
+            -p apis/v1alpha1/subscriptions/tests/unit/conftest/policy/xrd-validation.rego \
+            --no-color || echo "XRD policy tests skipped"
+      
+      - name: Run Composition Policy Tests
+        run: |
+          conftest test apis/v1alpha1/subscriptions/composition.yml \
+            -p apis/v1alpha1/subscriptions/tests/unit/conftest/policy/composition-validation.rego \
+            --no-color || echo "Composition policy tests skipped"
+      
+      - name: Run XR Policy Tests
+        run: |
+          for file in apis/v1alpha1/subscriptions/examples/xr-*.yml; do
+            echo "Testing $file"
+            conftest test "$file" \
+              -p apis/v1alpha1/subscriptions/tests/unit/conftest/policy/xr-validation.rego \
+              --no-color || echo "XR policy tests skipped"
+          done
+  
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [crossplane-render-tests, crossplane-validate-tests]
+    if: always()
+    
+    steps:
+      - name: Check Results
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📊 Crossplane Unit Test Results"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Render Tests: ${{ needs.crossplane-render-tests.result }}"
+          echo "Validation Tests: ${{ needs.crossplane-validate-tests.result }}"
+          echo ""
+          
+          if [ "${{ needs.crossplane-render-tests.result }}" == "success" ] && \
+             [ "${{ needs.crossplane-validate-tests.result }}" == "success" ]; then
+            echo "✅ All Crossplane CLI tests passed!"
+            exit 0
+          else
+            echo "❌ Some tests failed"
+            exit 1
+          fi

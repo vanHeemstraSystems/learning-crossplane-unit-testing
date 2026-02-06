@@ -1,0 +1,73 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xazuresubscriptions.atlas.teamrockstars.cloud
+spec:
+  group: atlas.teamrockstars.cloud
+  names:
+    kind: XAzureSubscription
+    plural: xazuresubscriptions
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    subscriptionName:
+                      type: string
+                      description: Name of the Azure Subscription
+                    billingAccountId:
+                      type: string
+                      description: Azure Billing Account ID
+                    workload:
+                      type: string
+                      enum:
+                        - Production
+                        - DevTest
+                      description: Type of workload for the subscription
+                    environment:
+                      type: string
+                      enum:
+                        - dev
+                        - staging
+                        - prod
+                      description: Environment designation
+                    tags:
+                      type: object
+                      additionalProperties:
+                        type: string
+                      description: Additional tags for the subscription
+                    defaultResourceGroup:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        location:
+                          type: string
+                          default: westeurope
+                      required:
+                        - name
+                  required:
+                    - subscriptionName
+                    - billingAccountId
+                    - workload
+                    - environment
+              required:
+                - parameters
+            status:
+              type: object
+              properties:
+                subscriptionId:
+                  type: string
+                  description: Azure Subscription ID
+                state:
+                  type: string
+                  description: Current state of the subscription

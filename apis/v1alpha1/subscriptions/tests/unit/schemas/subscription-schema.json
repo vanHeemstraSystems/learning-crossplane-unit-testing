@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "pattern": "^atlas\\.teamrockstars\\.cloud/v1alpha1$"
+    },
+    "kind": {
+      "type": "string",
+      "const": "XAzureSubscription"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "labels"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "labels": {
+          "type": "object",
+          "required": ["environment", "managed-by"],
+          "properties": {
+            "environment": {
+              "type": "string",
+              "enum": ["dev", "staging", "prod"]
+            },
+            "managed-by": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["parameters"],
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "required": [
+            "subscriptionName",
+            "billingAccountId",
+            "workload",
+            "environment"
+          ],
+          "properties": {
+            "subscriptionName": {
+              "type": "string",
+              "pattern": "^atlas-"
+            },
+            "billingAccountId": {
+              "type": "string",
+              "pattern": "^/providers/Microsoft\\.Billing/billingAccounts/"
+            },
+            "workload": {
+              "type": "string",
+              "enum": ["Production", "DevTest"]
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["dev", "staging", "prod"]
+            },
+            "tags": {
+              "type": "object",
+              "required": ["cost-center", "project", "owner"],
+              "properties": {
+                "cost-center": { "type": "string" },
+                "project": { "type": "string" },
+                "owner": { "type": "string" },
+                "environment": { "type": "string" }
+              }
+            },
+            "defaultResourceGroup": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^rg-atlas-"
+                },
+                "location": {
+                  "type": "string",
+                  "enum": [
+                    "westeurope",
+                    "northeurope",
+                    "eastus",
+                    "westus",
+                    "centralus"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

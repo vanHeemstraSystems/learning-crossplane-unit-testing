@@ -1,0 +1,19 @@
+apiVersion: atlas.teamrockstars.cloud/v1alpha1
+kind: XAzureSubscription
+metadata:
+  name: test-subscription
+spec:
+  parameters:
+    subscriptionName: test-atlas-subscription
+    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/test-12345"
+    workload: DevTest
+    environment: dev
+    tags:
+      test: "true"
+      purpose: "unit-testing"
+      cost-center: "engineering"
+      project: "atlas-idp"
+      owner: "test.user"
+    defaultResourceGroup:
+      name: rg-test-weu
+      location: westeurope

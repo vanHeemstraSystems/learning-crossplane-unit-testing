@@ -1,0 +1,21 @@
+apiVersion: atlas.teamrockstars.cloud/v1alpha1
+kind: XAzureSubscription
+metadata:
+  name: atlas-dev-subscription
+  labels:
+    environment: dev
+    managed-by: crossplane
+spec:
+  parameters:
+    subscriptionName: atlas-dev
+    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
+    workload: DevTest
+    environment: dev
+    tags:
+      cost-center: "engineering"
+      project: "atlas-idp"
+      environment: "dev"
+      owner: "willem.vanheemstra"
+    defaultResourceGroup:
+      name: rg-atlas-dev-weu
+      location: westeurope

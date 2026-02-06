@@ -1,0 +1,22 @@
+apiVersion: atlas.teamrockstars.cloud/v1alpha1
+kind: XAzureSubscription
+metadata:
+  name: atlas-prod-subscription
+  labels:
+    environment: prod
+    managed-by: crossplane
+spec:
+  parameters:
+    subscriptionName: atlas-production
+    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
+    workload: Production
+    environment: prod
+    tags:
+      cost-center: "operations"
+      project: "atlas-idp"
+      environment: "prod"
+      owner: "ops.team"
+      compliance: "required"
+    defaultResourceGroup:
+      name: rg-atlas-prod-weu
+      location: westeurope

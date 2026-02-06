@@ -1,0 +1,84 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xazuresubscription.atlas.teamrockstars.cloud
+  labels:
+    provider: azure
+    resource: subscription
+spec:
+  compositeTypeRef:
+    apiVersion: atlas.teamrockstars.cloud/v1alpha1
+    kind: XAzureSubscription
+  
+  mode: Pipeline
+  
+  pipeline:
+    - step: create-subscription
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: subscription
+            base:
+              apiVersion: subscription.azure.upbound.io/v1beta1
+              kind: Subscription
+              spec:
+                forProvider:
+                  billingScope: ""
+                  subscriptionName: ""
+                  workload: ""
+                  tags: {}
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.billingAccountId
+                toFieldPath: spec.forProvider.billingScope
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.subscriptionName
+                toFieldPath: spec.forProvider.subscriptionName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.workload
+                toFieldPath: spec.forProvider.workload
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.tags
+                toFieldPath: spec.forProvider.tags
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.subscriptionId
+                toFieldPath: status.subscriptionId
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.atProvider.state
+                toFieldPath: status.state
+            
+          - name: default-resource-group
+            base:
+              apiVersion: azure.upbound.io/v1beta1
+              kind: ResourceGroup
+              spec:
+                forProvider:
+                  location: westeurope
+                  tags: {}
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.defaultResourceGroup.name
+                toFieldPath: metadata.name
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.defaultResourceGroup.location
+                toFieldPath: spec.forProvider.location
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.tags
+                toFieldPath: spec.forProvider.tags
+                policy:
+                  mergeOptions:
+                    keepMapValues: true
+              - type: CombineFromComposite
+                combine:
+                  variables:
+                    - fromFieldPath: spec.parameters.environment
+                  strategy: string
+                  string:
+                    fmt: "atlas-subscription-%s"
+                toFieldPath: spec.forProvider.tags.managed-by
