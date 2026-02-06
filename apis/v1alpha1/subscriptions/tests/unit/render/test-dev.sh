@@ -10,6 +10,21 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../../.." && pwd)"
 
 echo "🧪 Testing dev environment XR with crossplane render..."
 
+# Pick the CLI binary name (Windows installs often use crank.exe).
+XP_BIN="${XP_BIN:-}"
+if [ -z "$XP_BIN" ]; then
+  if command -v crossplane &> /dev/null; then
+    XP_BIN="crossplane"
+  elif command -v crank &> /dev/null; then
+    XP_BIN="crank"
+  fi
+fi
+if [ -z "$XP_BIN" ]; then
+  echo -e "${RED}❌ Crossplane CLI not found${NC}"
+  echo "Install from: https://docs.crossplane.io/latest/cli/"
+  exit 1
+fi
+
 # Ensure crossplane render can talk to Docker Desktop on macOS.
 # Docker CLI may use a context socket under ~/.docker/run/, while /var/run/docker.sock may not exist.
 if [ -z "${DOCKER_HOST:-}" ] && command -v docker &> /dev/null; then
@@ -31,7 +46,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Render the composition
-if ! OUTPUT=$(crossplane render \
+if ! OUTPUT=$($XP_BIN render \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/examples/xr-dev.yml" \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" 2>&1); then

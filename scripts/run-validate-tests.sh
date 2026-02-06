@@ -18,6 +18,16 @@ NC='\033[0m'
 echo -e "${BLUE}🔍 Running Crossplane Validation Tests${NC}"
 echo "=========================================="
 
+# Pick the CLI binary name (Windows installs often use crank.exe).
+XP_BIN="${XP_BIN:-}"
+if [ -z "$XP_BIN" ]; then
+    if command -v crossplane &> /dev/null; then
+        XP_BIN="crossplane"
+    elif command -v crank &> /dev/null; then
+        XP_BIN="crank"
+    fi
+fi
+
 # Ensure crossplane render uses the same Docker endpoint as the Docker CLI.
 # On macOS, Docker Desktop often uses a context socket under ~/.docker/run/
 # and /var/run/docker.sock may not exist.
@@ -34,14 +44,16 @@ if [ -z "${DOCKER_HOST:-}" ] && [ -S "$HOME/.docker/run/docker.sock" ]; then
     export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
 fi
 
-# Check if crossplane CLI is installed
-if ! command -v crossplane &> /dev/null; then
-    echo -e "${RED}❌ crossplane CLI not found${NC}"
+# Check if Crossplane CLI is installed
+if [ -z "$XP_BIN" ]; then
+    echo -e "${RED}❌ Crossplane CLI not found${NC}"
+    echo "Install from: https://docs.crossplane.io/latest/cli/"
     echo "Install with: curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh"
     exit 1
 fi
 
-echo "Using crossplane CLI version: $(crossplane --version)"
+echo "Using Crossplane CLI: $XP_BIN"
+echo "Using Crossplane CLI version: $($XP_BIN version 2>/dev/null || $XP_BIN --version 2>/dev/null || true)"
 echo ""
 
 TOTAL_TESTS=0
@@ -67,7 +79,7 @@ run_validation_test() {
     
     # Render and pipe to validate
     echo "Rendering composition..."
-    if RENDER_OUTPUT=$(crossplane render \
+    if RENDER_OUTPUT=$($XP_BIN render \
         "$xr_file" \
         "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
         "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" \
@@ -77,7 +89,7 @@ run_validation_test() {
         
         # Validate against XRD
         echo "Validating against XRD schema..."
-        if echo "$RENDER_OUTPUT" | crossplane beta validate \
+        if echo "$RENDER_OUTPUT" | $XP_BIN beta validate \
             "$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml" \
             - > /dev/null 2>&1; then
             
@@ -89,7 +101,7 @@ run_validation_test() {
             echo -e "${RED}✗${NC} XRD schema validation failed"
             echo ""
             echo "Validation output:"
-            echo "$RENDER_OUTPUT" | crossplane beta validate \
+            echo "$RENDER_OUTPUT" | $XP_BIN beta validate \
                 "$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml" \
                 - 2>&1 || true
             FAILED_TESTS=$((FAILED_TESTS + 1))

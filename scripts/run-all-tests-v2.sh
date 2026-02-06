@@ -27,6 +27,16 @@ TOTAL_SUITES=0
 PASSED_SUITES=0
 FAILED_SUITES=0
 
+# Pick the CLI binary name (Windows installs often use crank.exe).
+XP_BIN="${XP_BIN:-}"
+if [ -z "$XP_BIN" ]; then
+    if command -v crossplane &> /dev/null; then
+        XP_BIN="crossplane"
+    elif command -v crank &> /dev/null; then
+        XP_BIN="crank"
+    fi
+fi
+
 # Function to run a test suite
 run_suite() {
     local suite_name="$1"
@@ -65,12 +75,12 @@ run_suite() {
 echo "🔍 Pre-flight checks..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-if ! command -v crossplane &> /dev/null; then
-    echo -e "${RED}❌ crossplane CLI not found${NC}"
-    echo "Install with: curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh"
+if [ -z "$XP_BIN" ]; then
+    echo -e "${RED}❌ Crossplane CLI not found${NC}"
+    echo "Install from: https://docs.crossplane.io/latest/cli/"
     exit 1
 else
-    echo -e "${GREEN}✓${NC} crossplane CLI: $(crossplane --version)"
+    echo -e "${GREEN}✓${NC} Crossplane CLI ($XP_BIN): $($XP_BIN version 2>/dev/null || $XP_BIN --version 2>/dev/null || true)"
 fi
 
 if command -v yq &> /dev/null; then
