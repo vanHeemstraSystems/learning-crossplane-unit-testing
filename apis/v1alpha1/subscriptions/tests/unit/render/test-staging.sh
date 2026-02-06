@@ -19,7 +19,7 @@ NC='\033[0m'
 OUTPUT=$(crossplane render \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/examples/xr-staging.yml" \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
-  "$REPO_ROOT/apis/v1alpha1/subscriptions/functions.yml" 2>&1)
+  "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" 2>&1)
 
 TESTS_PASSED=0
 TESTS_FAILED=0

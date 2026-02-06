@@ -28,7 +28,7 @@ For a working setup in **under 5 minutes**, you need just **9 critical files**:
 1. **README.md** → `README.md`
 2. **xrd.yml** → `apis/v1alpha1/subscriptions/xrd.yml`
 3. **composition.yml** → `apis/v1alpha1/subscriptions/composition.yml`
-4. **functions.yml** → `apis/v1alpha1/subscriptions/functions.yml`
+4. **patch-and-transform.yml** → `apis/v1alpha1/subscriptions/functions/patch-and-transform.yml`
 5. **xr-dev.yml** → `apis/v1alpha1/subscriptions/examples/xr-dev.yml`
 6. **setup-test-env-v2.sh** → `scripts/setup-test-env-v2.sh`
 7. **run-render-tests.sh** → `scripts/run-render-tests.sh`
@@ -91,7 +91,7 @@ For the **full experience with all features**, download all **34 files**:
 **Crossplane Resources:**
 - xrd.yml → apis/v1alpha1/subscriptions/xrd.yml
 - composition.yml → apis/v1alpha1/subscriptions/composition.yml
-- functions.yml → apis/v1alpha1/subscriptions/functions.yml
+- patch-and-transform.yml → apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
 - xr-dev.yml → apis/v1alpha1/subscriptions/examples/xr-dev.yml
 - xr-staging.yml → apis/v1alpha1/subscriptions/examples/xr-staging.yml
 - xr-prod.yml → apis/v1alpha1/subscriptions/examples/xr-prod.yml
@@ -141,7 +141,7 @@ For the **full experience with all features**, download all **34 files**:
 
 **What you need:**
 ```
-✅ xrd.yml, composition.yml, functions.yml
+✅ xrd.yml, composition.yml, functions/patch-and-transform.yml
 ✅ xr-dev.yml, xr-staging.yml, xr-prod.yml
 ✅ run-render-tests.sh
 ✅ run-validate-tests.sh
@@ -192,7 +192,8 @@ learning-crossplane-unit-testing/
 │       └── subscriptions/
 │           ├── xrd.yml
 │           ├── composition.yml
-│           ├── functions.yml
+│           ├── functions/
+│           │   └── patch-and-transform.yml
 │           ├── examples/
 │           │   ├── xr-dev.yml
 │           │   ├── xr-staging.yml
@@ -283,7 +284,7 @@ crossplane --version
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
 ```
 
 **Expected output**: Should show XR + Subscription + ResourceGroup
@@ -324,16 +325,16 @@ sudo mv crossplane /usr/local/bin/
 ### Issue: Render fails with "no functions specified"
 
 **Solution:**
-Ensure you're passing `functions.yml`:
+Ensure you're passing the function definition file:
 ```bash
-crossplane render xr.yml composition.yml functions.yml
+crossplane render xr.yml composition.yml functions/patch-and-transform.yml
 #                                        ^^^^^^^^^^^^^^ don't forget this!
 ```
 
 ### Issue: Functions don't run locally
 
 **Solution:**
-Add Development runtime to `functions.yml`:
+Add Development runtime to `functions/patch-and-transform.yml`:
 ```yaml
 metadata:
   annotations:

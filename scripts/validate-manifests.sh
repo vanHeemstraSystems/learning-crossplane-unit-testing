@@ -83,7 +83,7 @@ echo "============================="
 
 # Check if XRD has required fields
 if [[ -f "$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml" ]]; then
-    run_test "XRD has spec.group" "yq eval '.spec.group' '$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml' | grep -q 'atlas.teamrockstars.cloud'"
+    run_test "XRD has spec.group" "yq eval '.spec.group' '$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml' | grep -q 'example.io'"
     run_test "XRD has spec.names" "yq eval '.spec.names' '$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml' | grep -q 'kind'"
     run_test "XRD has versions" "yq eval '.spec.versions' '$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml' | grep -q 'v1alpha1'"
 fi

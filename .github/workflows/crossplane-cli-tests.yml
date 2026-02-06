@@ -29,7 +29,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-dev.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
       
       - name: Test Staging Environment
         run: |
@@ -37,7 +37,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-staging.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
       
       - name: Test Production Environment
         run: |
@@ -45,7 +45,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-prod.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
       
       - name: Verify Resources Rendered
         run: |
@@ -55,7 +55,7 @@ jobs:
           OUTPUT=$(crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-dev.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml)
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml)
           
           echo "$OUTPUT" | grep -q "kind: XAzureSubscription" || exit 1
           echo "$OUTPUT" | grep -q "kind: Subscription" || exit 1
@@ -83,7 +83,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-dev.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml \
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
             --include-full-xr | \
           crossplane beta validate \
             apis/v1alpha1/subscriptions/xrd.yml \
@@ -95,7 +95,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-staging.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml \
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
             --include-full-xr | \
           crossplane beta validate \
             apis/v1alpha1/subscriptions/xrd.yml \
@@ -107,7 +107,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-prod.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml \
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
             --include-full-xr | \
           crossplane beta validate \
             apis/v1alpha1/subscriptions/xrd.yml \

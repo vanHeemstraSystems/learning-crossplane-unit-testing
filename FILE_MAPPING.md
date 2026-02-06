@@ -46,8 +46,8 @@ Create directory: `apis/v1alpha1/subscriptions/`
    - Place at: `apis/v1alpha1/subscriptions/composition.yml`
 
 6. **Functions**
-   - Download: `functions.yml`
-   - Place at: `apis/v1alpha1/subscriptions/functions.yml`
+   - Download: `patch-and-transform.yml`
+   - Place at: `apis/v1alpha1/subscriptions/functions/patch-and-transform.yml`
 
 Create directory: `apis/v1alpha1/subscriptions/examples/`
 
@@ -201,7 +201,8 @@ learning-crossplane-unit-testing/
 │       └── subscriptions/
 │           ├── xrd.yml                        # File 4
 │           ├── composition.yml                # File 5
-│           ├── functions.yml                  # File 6
+│           ├── functions/                     # File 6
+│           │   └── patch-and-transform.yml
 │           │
 │           ├── examples/
 │           │   ├── xr-dev.yml                # File 7
@@ -275,7 +276,7 @@ These are the absolute minimum files needed for Crossplane CLI testing:
 1. README.md (File 1)
 2. xrd.yml (File 4)
 3. composition.yml (File 5)
-4. functions.yml (File 6)
+4. patch-and-transform.yml (File 6)
 5. xr-dev.yml (File 7)
 6. setup-test-env-v2.sh (File 10)
 7. run-render-tests.sh (File 11)
@@ -326,7 +327,7 @@ ls -la apis/v1alpha1/subscriptions/tests/unit/render/
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
 
 # 4. Run test suite
 ./scripts/run-all-tests-v2.sh
@@ -355,7 +356,7 @@ sudo mv crossplane /usr/local/bin/
 ### Issue: Functions not rendering
 
 **Solution:**
-Ensure `functions.yml` has the Development runtime annotation:
+Ensure `functions/patch-and-transform.yml` has the Development runtime annotation:
 ```yaml
 metadata:
   annotations:

@@ -1,4 +1,4 @@
-apiVersion: atlas.teamrockstars.cloud/v1alpha1
+apiVersion: example.io/v1alpha1
 kind: XAzureSubscription
 metadata:
   name: atlas-prod-subscription

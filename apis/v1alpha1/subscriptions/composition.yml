@@ -1,13 +1,13 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: xazuresubscription.atlas.teamrockstars.cloud
+  name: xazuresubscription.example.io
   labels:
     provider: azure
     resource: subscription
 spec:
   compositeTypeRef:
-    apiVersion: atlas.teamrockstars.cloud/v1alpha1
+    apiVersion: example.io/v1alpha1
     kind: XAzureSubscription
   
   mode: Pipeline

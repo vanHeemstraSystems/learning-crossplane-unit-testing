@@ -47,7 +47,8 @@ learning-crossplane-unit-testing/
 │       └── subscriptions/
 │           ├── xrd.yml                    # XRD definition
 │           ├── composition.yml            # Composition template
-│           ├── functions.yml              # Function definitions
+│           ├── functions/                 # Function definitions (Crossplane CLI)
+│           │   └── patch-and-transform.yml
 │           ├── examples/
 │           │   ├── xr-dev.yml            # Development XR example
 │           │   ├── xr-staging.yml        # Staging XR example
@@ -106,7 +107,7 @@ Use Conftest/OPA for governance and organizational standards:
 
 ### 1. Functions Definition
 
-Create `functions.yml` to define the composition functions:
+Create `functions/patch-and-transform.yml` to define the composition functions:
 
 ```yaml
 ---
@@ -129,7 +130,7 @@ Test that your Composition renders correctly:
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
 
 # Expected output: XR + rendered managed resources
 ```
@@ -141,7 +142,7 @@ crossplane render \
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml \
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
   --include-full-xr | \
 crossplane beta validate \
   apis/v1alpha1/subscriptions/xrd.yml \
@@ -161,7 +162,7 @@ mkdir -p apis/v1alpha1/subscriptions/tests/unit/observed
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml \
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
   --observed-resources=apis/v1alpha1/subscriptions/tests/unit/observed
 ```
 
@@ -179,7 +180,7 @@ echo "🧪 Testing dev environment XR..."
 OUTPUT=$(crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml 2>&1)
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml 2>&1)
 
 # Check for expected resources
 echo "$OUTPUT" | grep -q "kind: Subscription" || {
@@ -226,7 +227,7 @@ for env in dev staging prod; do
   crossplane render \
     apis/v1alpha1/subscriptions/examples/xr-$env.yml \
     apis/v1alpha1/subscriptions/composition.yml \
-    apis/v1alpha1/subscriptions/functions.yml \
+      apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
     --include-full-xr | \
   crossplane beta validate \
     apis/v1alpha1/subscriptions/xrd.yml \
@@ -270,7 +271,7 @@ crossplane --version
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
 
 # All environments (automated)
 ./scripts/run-render-tests.sh
@@ -283,7 +284,7 @@ crossplane render \
 crossplane render \
   apis/v1alpha1/subscriptions/examples/xr-dev.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml \
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
   --include-full-xr | \
 crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
 
@@ -388,7 +389,7 @@ jobs:
             crossplane render \
               apis/v1alpha1/subscriptions/examples/xr-$env.yml \
               apis/v1alpha1/subscriptions/composition.yml \
-              apis/v1alpha1/subscriptions/functions.yml
+              apis/v1alpha1/subscriptions/functions/patch-and-transform.yml
           done
       
       - name: Validate Against Schemas
@@ -396,7 +397,7 @@ jobs:
           crossplane render \
             apis/v1alpha1/subscriptions/examples/xr-dev.yml \
             apis/v1alpha1/subscriptions/composition.yml \
-            apis/v1alpha1/subscriptions/functions.yml \
+            apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
             --include-full-xr | \
           crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
 ```
@@ -435,15 +436,15 @@ kind: XAzureSubscription  # Crossplane v2 style
 crossplane render xr.yaml composition.yaml  # Missing functions!
 ```
 
-**✅ Always include functions.yml:**
+**✅ Always include your function definition file:**
 
 ```bash
-crossplane render xr.yaml composition.yaml functions.yml
+crossplane render xr.yaml composition.yaml functions/patch-and-transform.yml
 ```
 
 ### 3. Function Runtime Mode
 
-For local testing, use Development mode in functions.yml:
+For local testing, use Development mode in `functions/patch-and-transform.yml`:
 
 ```yaml
 metadata:

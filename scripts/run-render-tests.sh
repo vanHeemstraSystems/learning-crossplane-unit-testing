@@ -53,7 +53,7 @@ run_render_test() {
     if OUTPUT=$(crossplane render \
         "$xr_file" \
         "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
-        "$REPO_ROOT/apis/v1alpha1/subscriptions/functions.yml" 2>&1); then
+        "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" 2>&1); then
         
         # Verify expected resources in output
         local checks_passed=0

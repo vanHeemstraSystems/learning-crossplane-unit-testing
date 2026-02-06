@@ -17,7 +17,8 @@ These are the minimum files needed to get a first green test:
 apis/v1alpha1/subscriptions/
   xrd.yml
   composition.yml
-  functions.yml
+  functions/
+    patch-and-transform.yml
   examples/
     xr-dev.yml
     xr-staging.yml
@@ -61,7 +62,7 @@ From this repo, copy these exact files into the same paths in your new repo:
 
 - `apis/v1alpha1/subscriptions/xrd.yml`
 - `apis/v1alpha1/subscriptions/composition.yml`
-- `apis/v1alpha1/subscriptions/functions.yml`
+- `apis/v1alpha1/subscriptions/functions/patch-and-transform.yml`
 - `apis/v1alpha1/subscriptions/examples/xr-dev.yml`
 - `apis/v1alpha1/subscriptions/examples/xr-staging.yml`
 - `apis/v1alpha1/subscriptions/examples/xr-prod.yml`
@@ -140,7 +141,7 @@ Under the hood this does (for each environment):
 ```bash
 crossplane render apis/v1alpha1/subscriptions/examples/xr-<env>.yml \
   apis/v1alpha1/subscriptions/composition.yml \
-  apis/v1alpha1/subscriptions/functions.yml \
+  apis/v1alpha1/subscriptions/functions/patch-and-transform.yml \
   --include-full-xr \
 | crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
 ```
@@ -178,7 +179,7 @@ If you keep the same API group/kind, the tests will run immediately. If you rena
 ### Common “first failure” fixes
 
 - **Render fails with “no functions specified / function not found”**
-  - Ensure `apis/v1alpha1/subscriptions/functions.yml` exists
+  - Ensure `apis/v1alpha1/subscriptions/functions/patch-and-transform.yml` exists
   - Ensure it contains `render.crossplane.io/runtime: Development`
   - Ensure Composition references `functionRef.name: function-patch-and-transform`
 

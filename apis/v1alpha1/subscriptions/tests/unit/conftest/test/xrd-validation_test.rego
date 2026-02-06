@@ -16,7 +16,7 @@ test_xrd_valid_environments {
     not deny[_] with input as {
         "metadata": {"name": "test"},
         "spec": {
-            "group": "atlas.teamrockstars.cloud",
+            "group": "example.io",
             "versions": [{
                 "schema": {
                     "openAPIV3Schema": {

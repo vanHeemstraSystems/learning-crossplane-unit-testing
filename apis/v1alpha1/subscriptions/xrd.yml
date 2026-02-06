@@ -5,10 +5,10 @@
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: xazuresubscriptions.atlas.teamrockstars.cloud
+  name: xazuresubscriptions.example.io
 spec:
   scope: Namespaced
-  group: atlas.teamrockstars.cloud
+  group: example.io
   names:
     kind: XAzureSubscription
     plural: xazuresubscriptions

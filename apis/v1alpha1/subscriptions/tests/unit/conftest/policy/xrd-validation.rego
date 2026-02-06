@@ -8,8 +8,8 @@ deny[msg] {
 
 # Test that XRD belongs to correct group
 deny[msg] {
-    input.spec.group != "atlas.teamrockstars.cloud"
-    msg = sprintf("XRD group must be 'atlas.teamrockstars.cloud', got '%s'", [input.spec.group])
+    input.spec.group != "example.io"
+    msg = sprintf("XRD group must be 'example.io', got '%s'", [input.spec.group])
 }
 
 # Test that required parameters are defined

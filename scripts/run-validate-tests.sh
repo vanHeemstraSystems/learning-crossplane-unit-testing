@@ -54,7 +54,7 @@ run_validation_test() {
     if RENDER_OUTPUT=$(crossplane render \
         "$xr_file" \
         "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
-        "$REPO_ROOT/apis/v1alpha1/subscriptions/functions.yml" \
+        "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" \
         --include-full-xr 2>&1); then
         
         echo -e "${GREEN}✓${NC} Composition rendered successfully"
@@ -113,7 +113,7 @@ validate_against_provider_schemas() {
     #     crossplane render \
     #         "$REPO_ROOT/apis/v1alpha1/subscriptions/examples/xr-$env.yml" \
     #         "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
-    #         "$REPO_ROOT/apis/v1alpha1/subscriptions/functions.yml" \
+    #         "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" \
     #         --include-full-xr | \
     #     crossplane beta validate \
     #         "$REPO_ROOT/apis/v1alpha1/subscriptions/xrd.yml" \
