@@ -43,9 +43,6 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.parameters.tags
                 toFieldPath: spec.forProvider.tags
-                policy:
-                  mergeOptions:
-                    keepMapValues: true
               - type: ToCompositeFieldPath
                 fromFieldPath: status.atProvider.subscriptionId
                 toFieldPath: status.subscriptionId
@@ -71,9 +68,6 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.parameters.tags
                 toFieldPath: spec.forProvider.tags
-                policy:
-                  mergeOptions:
-                    keepMapValues: true
               - type: CombineFromComposite
                 combine:
                   variables:

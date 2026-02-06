@@ -18,6 +18,22 @@ NC='\033[0m'
 echo -e "${BLUE}🔍 Running Crossplane Validation Tests${NC}"
 echo "=========================================="
 
+# Ensure crossplane render uses the same Docker endpoint as the Docker CLI.
+# On macOS, Docker Desktop often uses a context socket under ~/.docker/run/
+# and /var/run/docker.sock may not exist.
+if [ -z "${DOCKER_HOST:-}" ] && command -v docker &> /dev/null; then
+    DOCKER_CTX="$(docker context show 2>/dev/null || true)"
+    if [ -n "$DOCKER_CTX" ]; then
+        DOCKER_HOST_FROM_CTX="$(docker context inspect --format '{{.Endpoints.docker.Host}}' "$DOCKER_CTX" 2>/dev/null || true)"
+        if [ -n "$DOCKER_HOST_FROM_CTX" ]; then
+            export DOCKER_HOST="$DOCKER_HOST_FROM_CTX"
+        fi
+    fi
+fi
+if [ -z "${DOCKER_HOST:-}" ] && [ -S "$HOME/.docker/run/docker.sock" ]; then
+    export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
+fi
+
 # Check if crossplane CLI is installed
 if ! command -v crossplane &> /dev/null; then
     echo -e "${RED}❌ crossplane CLI not found${NC}"
