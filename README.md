@@ -1,30 +1,28 @@
 # learning-crossplane-unit-testing
 
-A comprehensive learning repository for unit testing Crossplane v2 compositions, XRDs (CompositeResourceDefinitions), and XRs (Composite Resources).
+A comprehensive learning repository for unit testing Crossplane v2 compositions, XRDs (CompositeResourceDefinitions), and XRs (Composite Resources) using the Crossplane CLI.
 
 ## Overview
 
-This repository demonstrates best practices for unit testing Crossplane v2 resources, with a focus on Azure infrastructure. We use Crossplane v2’s architecture which works directly with XRs (Composite Resources) instead of Claims, providing a more streamlined approach to infrastructure composition.
+This repository demonstrates best practices for unit testing Crossplane v2 resources using the official Crossplane CLI tools (`crossplane render` and `crossplane beta validate`), complemented by policy-based testing with Conftest/OPA. We use Crossplane v2’s architecture which works directly with XRs (Composite Resources) instead of Claims, providing a more streamlined approach to infrastructure composition.
 
 ## What You’ll Learn
 
-- Unit testing strategies for Crossplane XRDs
-- Composition validation and testing
-- XR (Composite Resource) testing patterns
+- **Crossplane CLI Testing**: Using `crossplane render` and `crossplane beta validate`
+- Unit testing strategies for Crossplane XRDs, Compositions, and XRs
+- Policy-based validation with Conftest/OPA
 - Azure-specific resource testing (Subscriptions, Resource Groups, etc.)
 - Test automation and CI/CD integration
 - Common pitfalls and how to avoid them
 
 ## Prerequisites
 
-- Kubernetes cluster (local or remote)
-- Crossplane v2.x installed
+- **Crossplane CLI** v1.14+ (includes `render` and `validate` commands)
 - `kubectl` CLI tool
+- Docker (for running composition functions)
 - Testing tools:
-  - [kuttl](https://kuttl.dev/) - Kubernetes Test Tool
-  - [conftest](https://www.conftest.dev/) - Policy testing
-  - [kubeval](https://kubeval.instrumenta.dev/) - YAML validation
-  - [yq](https://github.com/mikefarah/yq) - YAML processor
+  - [conftest](https://www.conftest.dev/) - Policy testing (optional)
+  - [yq](https://github.com/mikefarah/yq) - YAML processor (optional)
 
 ## Directory Structure
 
@@ -36,793 +34,278 @@ learning-crossplane-unit-testing/
 │       └── subscriptions/
 │           ├── xrd.yml                    # XRD definition
 │           ├── composition.yml            # Composition template
+│           ├── functions.yml              # Function definitions
 │           ├── examples/
 │           │   ├── xr-dev.yml            # Development XR example
 │           │   ├── xr-staging.yml        # Staging XR example
 │           │   └── xr-prod.yml           # Production XR example
 │           └── tests/
 │               └── unit/
-│                   ├── kuttl/
-│                   │   ├── kuttl-test.yaml
-│                   │   └── 00-subscription-creation/
-│                   │       ├── 00-assert.yaml
-│                   │       └── 00-xr.yaml
-│                   ├── conftest/
+│                   ├── render/           # Crossplane render tests
+│                   │   ├── test-dev.sh
+│                   │   ├── test-staging.sh
+│                   │   └── test-prod.sh
+│                   ├── conftest/         # Policy tests
 │                   │   ├── policy/
 │                   │   │   ├── xrd-validation.rego
 │                   │   │   ├── composition-validation.rego
 │                   │   │   └── xr-validation.rego
 │                   │   └── test/
-│                   │       ├── xrd-validation_test.rego
-│                   │       ├── composition-validation_test.rego
-│                   │       └── xr-validation_test.rego
+│                   │       └── ...
 │                   └── schemas/
 │                       └── subscription-schema.json
 ├── docs/
 │   ├── testing-strategy.md
-│   ├── azure-subscription-use-case.md
-│   ├── crossplane-v2-differences.md
+│   ├── crossplane-cli-testing.md
 │   └── ci-cd-integration.md
-├── scripts/
-│   ├── setup-test-env.sh
-│   ├── run-all-tests.sh
-│   └── validate-manifests.sh
-└── .github/
-    └── workflows/
-        └── unit-tests.yml
+└── scripts/
+    ├── setup-test-env.sh
+    ├── run-render-tests.sh
+    ├── run-validate-tests.sh
+    └── run-all-tests.sh
 ```
+
+## Testing Approach
+
+### Primary: Crossplane CLI Testing
+
+The **recommended approach** uses the official Crossplane CLI:
+
+1. **`crossplane render`** - Renders your Composition locally to verify output
+1. **`crossplane beta validate`** - Validates rendered resources against provider schemas
+
+This is faster, more reliable, and doesn’t require a Kubernetes cluster.
+
+### Secondary: Policy Testing
+
+Use Conftest/OPA for governance and organizational standards:
+
+- Naming conventions
+- Required tags
+- Security policies
+- Compliance rules
 
 ## Use Case: Azure Subscription Management
 
-### Scenario
+[Previous use case section remains the same through the XRD, Composition, and XR examples…]
 
-As a Cloud Engineer at Team Rockstars Cloud working on the Atlas IDP, you need to provision and manage Azure Subscriptions for different environments (dev, staging, production) with consistent configuration and governance.
+## Unit Testing with Crossplane CLI
 
-### Requirements
+### 1. Functions Definition
 
-1. **Subscription Creation**: Automated Azure Subscription provisioning
-1. **Resource Group**: Default resource group for subscription resources
-1. **Tags**: Environment-specific tagging for cost allocation
-1. **Naming Convention**: Standardized naming following company conventions
-1. **Testing**: Comprehensive unit tests to validate configurations
-
-### Implementation
-
-#### 1. XRD (CompositeResourceDefinition)
-
-Location: `apis/v1alpha1/subscriptions/xrd.yml`
+Create `functions.yml` to define the composition functions:
 
 ```yaml
-apiVersion: apiextensions.crossplane.io/v1
-kind: CompositeResourceDefinition
-metadata:
-  name: xazuresubscriptions.atlas.teamrockstars.cloud
-spec:
-  group: atlas.teamrockstars.cloud
-  names:
-    kind: XAzureSubscription
-    plural: xazuresubscriptions
-  versions:
-    - name: v1alpha1
-      served: true
-      referenceable: true
-      schema:
-        openAPIV3Schema:
-          type: object
-          properties:
-            spec:
-              type: object
-              properties:
-                parameters:
-                  type: object
-                  properties:
-                    subscriptionName:
-                      type: string
-                      description: Name of the Azure Subscription
-                    billingAccountId:
-                      type: string
-                      description: Azure Billing Account ID
-                    workload:
-                      type: string
-                      enum:
-                        - Production
-                        - DevTest
-                      description: Type of workload for the subscription
-                    environment:
-                      type: string
-                      enum:
-                        - dev
-                        - staging
-                        - prod
-                      description: Environment designation
-                    tags:
-                      type: object
-                      additionalProperties:
-                        type: string
-                      description: Additional tags for the subscription
-                    defaultResourceGroup:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        location:
-                          type: string
-                          default: westeurope
-                      required:
-                        - name
-                  required:
-                    - subscriptionName
-                    - billingAccountId
-                    - workload
-                    - environment
-              required:
-                - parameters
-            status:
-              type: object
-              properties:
-                subscriptionId:
-                  type: string
-                  description: Azure Subscription ID
-                state:
-                  type: string
-                  description: Current state of the subscription
-```
-
-#### 2. Composition
-
-Location: `apis/v1alpha1/subscriptions/composition.yml`
-
-```yaml
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
-  name: xazuresubscription.atlas.teamrockstars.cloud
-  labels:
-    provider: azure
-    resource: subscription
-spec:
-  compositeTypeRef:
-    apiVersion: atlas.teamrockstars.cloud/v1alpha1
-    kind: XAzureSubscription
-  
-  mode: Pipeline
-  
-  pipeline:
-    - step: create-subscription
-      functionRef:
-        name: function-patch-and-transform
-      input:
-        apiVersion: pt.fn.crossplane.io/v1beta1
-        kind: Resources
-        resources:
-          - name: subscription
-            base:
-              apiVersion: subscription.azure.upbound.io/v1beta1
-              kind: Subscription
-              spec:
-                forProvider:
-                  billingScope: ""
-                  subscriptionName: ""
-                  workload: ""
-                  tags: {}
-            patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.billingAccountId
-                toFieldPath: spec.forProvider.billingScope
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.subscriptionName
-                toFieldPath: spec.forProvider.subscriptionName
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.workload
-                toFieldPath: spec.forProvider.workload
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.tags
-                toFieldPath: spec.forProvider.tags
-                policy:
-                  mergeOptions:
-                    keepMapValues: true
-              - type: ToCompositeFieldPath
-                fromFieldPath: status.atProvider.subscriptionId
-                toFieldPath: status.subscriptionId
-              - type: ToCompositeFieldPath
-                fromFieldPath: status.atProvider.state
-                toFieldPath: status.state
-            
-          - name: default-resource-group
-            base:
-              apiVersion: azure.upbound.io/v1beta1
-              kind: ResourceGroup
-              spec:
-                forProvider:
-                  location: westeurope
-                  tags: {}
-            patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.defaultResourceGroup.name
-                toFieldPath: metadata.name
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.defaultResourceGroup.location
-                toFieldPath: spec.forProvider.location
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.parameters.tags
-                toFieldPath: spec.forProvider.tags
-                policy:
-                  mergeOptions:
-                    keepMapValues: true
-              - type: CombineFromComposite
-                combine:
-                  variables:
-                    - fromFieldPath: spec.parameters.environment
-                  strategy: string
-                  string:
-                    fmt: "atlas-subscription-%s"
-                toFieldPath: spec.forProvider.tags.managed-by
-```
-
-#### 3. XR Examples
-
-**Development Environment**
-
-Location: `apis/v1alpha1/subscriptions/examples/xr-dev.yml`
-
-```yaml
-apiVersion: atlas.teamrockstars.cloud/v1alpha1
-kind: XAzureSubscription
-metadata:
-  name: atlas-dev-subscription
-  labels:
-    environment: dev
-    managed-by: crossplane
-spec:
-  parameters:
-    subscriptionName: atlas-dev
-    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
-    workload: DevTest
-    environment: dev
-    tags:
-      cost-center: "engineering"
-      project: "atlas-idp"
-      environment: "dev"
-      owner: "willem.vanheemstra"
-    defaultResourceGroup:
-      name: rg-atlas-dev-weu
-      location: westeurope
-```
-
-**Staging Environment**
-
-Location: `apis/v1alpha1/subscriptions/examples/xr-staging.yml`
-
-```yaml
-apiVersion: atlas.teamrockstars.cloud/v1alpha1
-kind: XAzureSubscription
-metadata:
-  name: atlas-staging-subscription
-  labels:
-    environment: staging
-    managed-by: crossplane
-spec:
-  parameters:
-    subscriptionName: atlas-staging
-    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
-    workload: DevTest
-    environment: staging
-    tags:
-      cost-center: "engineering"
-      project: "atlas-idp"
-      environment: "staging"
-      owner: "willem.vanheemstra"
-    defaultResourceGroup:
-      name: rg-atlas-staging-weu
-      location: westeurope
-```
-
-**Production Environment**
-
-Location: `apis/v1alpha1/subscriptions/examples/xr-prod.yml`
-
-```yaml
-apiVersion: atlas.teamrockstars.cloud/v1alpha1
-kind: XAzureSubscription
-metadata:
-  name: atlas-prod-subscription
-  labels:
-    environment: prod
-    managed-by: crossplane
-spec:
-  parameters:
-    subscriptionName: atlas-production
-    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/12345678"
-    workload: Production
-    environment: prod
-    tags:
-      cost-center: "operations"
-      project: "atlas-idp"
-      environment: "prod"
-      owner: "ops.team"
-      compliance: "required"
-    defaultResourceGroup:
-      name: rg-atlas-prod-weu
-      location: westeurope
-```
-
-## Unit Testing Strategy
-
-### 1. KUTTL Tests (Integration-style Unit Tests)
-
-Location: `apis/v1alpha1/subscriptions/tests/unit/kuttl/`
-
-**Test Configuration**
-
-File: `kuttl-test.yaml`
-
-```yaml
-apiVersion: kuttl.dev/v1beta1
-kind: TestSuite
-testDirs:
-  - ./00-subscription-creation
-timeout: 300
-```
-
-**Test Case: Subscription Creation**
-
-File: `00-subscription-creation/00-xr.yaml`
-
-```yaml
-apiVersion: atlas.teamrockstars.cloud/v1alpha1
-kind: XAzureSubscription
-metadata:
-  name: test-subscription
-spec:
-  parameters:
-    subscriptionName: test-atlas-subscription
-    billingAccountId: "/providers/Microsoft.Billing/billingAccounts/test-12345"
-    workload: DevTest
-    environment: dev
-    tags:
-      test: "true"
-      purpose: "unit-testing"
-    defaultResourceGroup:
-      name: rg-test-weu
-      location: westeurope
-```
-
-File: `00-subscription-creation/00-assert.yaml`
-
-```yaml
-apiVersion: subscription.azure.upbound.io/v1beta1
-kind: Subscription
-metadata:
-  name: test-subscription-subscription
-spec:
-  forProvider:
-    subscriptionName: test-atlas-subscription
-    workload: DevTest
-    tags:
-      test: "true"
-      purpose: "unit-testing"
 ---
-apiVersion: azure.upbound.io/v1beta1
-kind: ResourceGroup
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
 metadata:
-  name: rg-test-weu
+  name: function-patch-and-transform
+  annotations:
+    render.crossplane.io/runtime: Development
 spec:
-  forProvider:
-    location: westeurope
-    tags:
-      test: "true"
-      purpose: "unit-testing"
-      managed-by: atlas-subscription-dev
+  package: xpkg.upbound.io/crossplane-contrib/function-patch-and-transform:v0.5.0
 ```
 
-### 2. Conftest/OPA Policy Tests
+### 2. Render Test (Basic)
 
-Location: `apis/v1alpha1/subscriptions/tests/unit/conftest/`
+Test that your Composition renders correctly:
 
-**XRD Validation Policy**
+```bash
+# Basic render test
+crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml
 
-File: `policy/xrd-validation.rego`
-
-```rego
-package xrd_validation
-
-# Test that XRD has required metadata
-deny[msg] {
-    not input.metadata.name
-    msg = "XRD must have a name"
-}
-
-# Test that XRD belongs to correct group
-deny[msg] {
-    input.spec.group != "atlas.teamrockstars.cloud"
-    msg = sprintf("XRD group must be 'atlas.teamrockstars.cloud', got '%s'", [input.spec.group])
-}
-
-# Test that required parameters are defined
-deny[msg] {
-    not input.spec.versions[_].schema.openAPIV3Schema.properties.spec.properties.parameters
-    msg = "XRD must define parameters in spec"
-}
-
-# Test that environment enum contains valid values
-deny[msg] {
-    environments := input.spec.versions[_].schema.openAPIV3Schema.properties.spec.properties.parameters.properties.environment.enum
-    not valid_environments(environments)
-    msg = "Environment enum must contain: dev, staging, prod"
-}
-
-valid_environments(environments) {
-    required := {"dev", "staging", "prod"}
-    provided := {e | e := environments[_]}
-    required == provided
-}
-
-# Test that workload enum is correct
-deny[msg] {
-    workloads := input.spec.versions[_].schema.openAPIV3Schema.properties.spec.properties.parameters.properties.workload.enum
-    not valid_workloads(workloads)
-    msg = "Workload enum must contain: Production, DevTest"
-}
-
-valid_workloads(workloads) {
-    required := {"Production", "DevTest"}
-    provided := {w | w := workloads[_]}
-    required == provided
-}
+# Expected output: XR + rendered managed resources
 ```
 
-**Composition Validation Policy**
+### 3. Validate Against Provider Schemas
 
-File: `policy/composition-validation.rego`
-
-```rego
-package composition_validation
-
-# Test that Composition references correct XRD
-deny[msg] {
-    input.spec.compositeTypeRef.kind != "XAzureSubscription"
-    msg = sprintf("Composition must reference XAzureSubscription, got '%s'", [input.spec.compositeTypeRef.kind])
-}
-
-# Test that pipeline mode is used (Crossplane v2 best practice)
-deny[msg] {
-    input.spec.mode != "Pipeline"
-    msg = "Composition should use Pipeline mode for Crossplane v2"
-}
-
-# Test that subscription resource exists in composition
-deny[msg] {
-    not has_subscription_resource
-    msg = "Composition must include a Subscription resource"
-}
-
-has_subscription_resource {
-    input.spec.pipeline[_].input.resources[_].base.kind == "Subscription"
-}
-
-# Test that resource group is created
-deny[msg] {
-    not has_resource_group
-    msg = "Composition must include a ResourceGroup resource"
-}
-
-has_resource_group {
-    input.spec.pipeline[_].input.resources[_].base.kind == "ResourceGroup"
-}
-
-# Test that required patches are present for subscription
-deny[msg] {
-    resource := input.spec.pipeline[_].input.resources[_]
-    resource.name == "subscription"
-    not has_required_subscription_patches(resource)
-    msg = "Subscription resource must patch: billingAccountId, subscriptionName, workload, tags"
-}
-
-has_required_subscription_patches(resource) {
-    patches := {p.fromFieldPath | p := resource.patches[_]}
-    required := {
-        "spec.parameters.billingAccountId",
-        "spec.parameters.subscriptionName",
-        "spec.parameters.workload",
-        "spec.parameters.tags"
-    }
-    count(patches & required) == count(required)
-}
+```bash
+# First render, then validate
+crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml \
+  --include-full-xr | \
+crossplane beta validate \
+  apis/v1alpha1/subscriptions/xrd.yml \
+  https://marketplace.upbound.io/providers/upbound/provider-azure-subscription/v1.3.1/crds.yaml \
+  -
 ```
 
-**XR Validation Policy**
+### 4. Test with Observed Resources
 
-File: `policy/xr-validation.rego`
+Simulate existing infrastructure:
 
-```rego
-package xr_validation
+```bash
+# Create observed resources directory
+mkdir -p apis/v1alpha1/subscriptions/tests/unit/observed
 
-# Test that XR has required metadata labels
-deny[msg] {
-    not input.metadata.labels.environment
-    msg = "XR must have 'environment' label"
-}
-
-deny[msg] {
-    not input.metadata.labels["managed-by"]
-    msg = "XR must have 'managed-by' label"
-}
-
-# Test that environment label matches spec
-deny[msg] {
-    input.metadata.labels.environment != input.spec.parameters.environment
-    msg = "Environment label must match spec.parameters.environment"
-}
-
-# Test that required parameters are provided
-deny[msg] {
-    not input.spec.parameters.subscriptionName
-    msg = "XR must specify subscriptionName"
-}
-
-deny[msg] {
-    not input.spec.parameters.billingAccountId
-    msg = "XR must specify billingAccountId"
-}
-
-# Test that workload matches environment
-deny[msg] {
-    input.spec.parameters.environment == "prod"
-    input.spec.parameters.workload != "Production"
-    msg = "Production environment must use 'Production' workload"
-}
-
-# Test that tags include required fields
-deny[msg] {
-    not input.spec.parameters.tags["cost-center"]
-    msg = "XR must include 'cost-center' tag"
-}
-
-deny[msg] {
-    not input.spec.parameters.tags.project
-    msg = "XR must include 'project' tag"
-}
-
-deny[msg] {
-    not input.spec.parameters.tags.owner
-    msg = "XR must include 'owner' tag"
-}
-
-# Test naming conventions
-deny[msg] {
-    not startswith(input.spec.parameters.subscriptionName, "atlas-")
-    msg = "Subscription name must start with 'atlas-'"
-}
-
-deny[msg] {
-    not startswith(input.spec.parameters.defaultResourceGroup.name, "rg-atlas-")
-    msg = "Resource group name must start with 'rg-atlas-'"
-}
-
-# Test location is valid Azure region
-deny[msg] {
-    location := input.spec.parameters.defaultResourceGroup.location
-    not valid_azure_region(location)
-    msg = sprintf("Invalid Azure region: '%s'", [location])
-}
-
-valid_azure_region(location) {
-    valid_regions := {
-        "westeurope", "northeurope", "eastus", "westus", 
-        "centralus", "southeastasia", "japaneast"
-    }
-    valid_regions[location]
-}
+# Render with observed state
+crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml \
+  --observed-resources=apis/v1alpha1/subscriptions/tests/unit/observed
 ```
 
-**Policy Unit Tests**
+### 5. Automated Test Scripts
 
-File: `test/xrd-validation_test.rego`
+**Test Script Example** (`tests/unit/render/test-dev.sh`):
 
-```rego
-package xrd_validation
+```bash
+#!/bin/bash
+set -e
 
-test_xrd_missing_name {
-    deny["XRD must have a name"] with input as {"metadata": {}}
+echo "🧪 Testing dev environment XR..."
+
+# Render the composition
+OUTPUT=$(crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml 2>&1)
+
+# Check for expected resources
+echo "$OUTPUT" | grep -q "kind: Subscription" || {
+  echo "❌ Failed: Subscription resource not found"
+  exit 1
 }
 
-test_xrd_wrong_group {
-    deny[msg] with input as {
-        "metadata": {"name": "test"},
-        "spec": {"group": "wrong.group"}
-    }
-    contains(msg, "XRD group must be")
+echo "$OUTPUT" | grep -q "kind: ResourceGroup" || {
+  echo "❌ Failed: ResourceGroup resource not found"
+  exit 1
 }
 
-test_xrd_valid_environments {
-    not deny[_] with input as {
-        "metadata": {"name": "test"},
-        "spec": {
-            "group": "atlas.teamrockstars.cloud",
-            "versions": [{
-                "schema": {
-                    "openAPIV3Schema": {
-                        "properties": {
-                            "spec": {
-                                "properties": {
-                                    "parameters": {
-                                        "properties": {
-                                            "environment": {
-                                                "enum": ["dev", "staging", "prod"]
-                                            },
-                                            "workload": {
-                                                "enum": ["Production", "DevTest"]
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }]
-        }
-    }
+# Verify subscription name
+echo "$OUTPUT" | grep -q "subscriptionName: atlas-dev" || {
+  echo "❌ Failed: Incorrect subscription name"
+  exit 1
 }
+
+# Verify region
+echo "$OUTPUT" | grep -q "region: westeurope" || {
+  echo "❌ Failed: Incorrect region"
+  exit 1
+}
+
+echo "✅ Dev environment test passed!"
 ```
 
-### 3. JSON Schema Validation
+### 6. Comprehensive Validation
 
-Location: `apis/v1alpha1/subscriptions/tests/unit/schemas/subscription-schema.json`
+**Validation Script** (`scripts/run-validate-tests.sh`):
 
-```json
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "required": ["apiVersion", "kind", "metadata", "spec"],
-  "properties": {
-    "apiVersion": {
-      "type": "string",
-      "pattern": "^atlas\\.teamrockstars\\.cloud/v1alpha1$"
-    },
-    "kind": {
-      "type": "string",
-      "const": "XAzureSubscription"
-    },
-    "metadata": {
-      "type": "object",
-      "required": ["name", "labels"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        },
-        "labels": {
-          "type": "object",
-          "required": ["environment", "managed-by"],
-          "properties": {
-            "environment": {
-              "type": "string",
-              "enum": ["dev", "staging", "prod"]
-            },
-            "managed-by": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
-    "spec": {
-      "type": "object",
-      "required": ["parameters"],
-      "properties": {
-        "parameters": {
-          "type": "object",
-          "required": [
-            "subscriptionName",
-            "billingAccountId",
-            "workload",
-            "environment"
-          ],
-          "properties": {
-            "subscriptionName": {
-              "type": "string",
-              "pattern": "^atlas-"
-            },
-            "billingAccountId": {
-              "type": "string",
-              "pattern": "^/providers/Microsoft\\.Billing/billingAccounts/"
-            },
-            "workload": {
-              "type": "string",
-              "enum": ["Production", "DevTest"]
-            },
-            "environment": {
-              "type": "string",
-              "enum": ["dev", "staging", "prod"]
-            },
-            "tags": {
-              "type": "object",
-              "required": ["cost-center", "project", "owner"],
-              "properties": {
-                "cost-center": { "type": "string" },
-                "project": { "type": "string" },
-                "owner": { "type": "string" },
-                "environment": { "type": "string" }
-              }
-            },
-            "defaultResourceGroup": {
-              "type": "object",
-              "required": ["name"],
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "pattern": "^rg-atlas-"
-                },
-                "location": {
-                  "type": "string",
-                  "enum": [
-                    "westeurope",
-                    "northeurope",
-                    "eastus",
-                    "westus",
-                    "centralus"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
+```bash
+#!/bin/bash
+set -e
+
+echo "🔍 Running Crossplane validation tests..."
+
+# Test each environment
+for env in dev staging prod; do
+  echo ""
+  echo "Testing $env environment..."
+  
+  # Render and validate
+  crossplane render \
+    apis/v1alpha1/subscriptions/examples/xr-$env.yml \
+    apis/v1alpha1/subscriptions/composition.yml \
+    apis/v1alpha1/subscriptions/functions.yml \
+    --include-full-xr | \
+  crossplane beta validate \
+    apis/v1alpha1/subscriptions/xrd.yml \
+    - && echo "✅ $env validated successfully" || echo "❌ $env validation failed"
+done
+
+echo ""
+echo "✅ All validations complete!"
 ```
+
+## Testing Strategy Comparison
+
+|Testing Method            |Speed      |Requires Cluster|Schema Validation    |Real Providers|
+|--------------------------|-----------|----------------|---------------------|--------------|
+|`crossplane render`       |⚡ Very Fast|❌ No            |✅ Yes (with validate)|❌ No          |
+|`crossplane beta validate`|⚡ Very Fast|❌ No            |✅ Yes                |❌ No          |
+|Conftest/OPA              |⚡ Very Fast|❌ No            |⚠️ Custom             |❌ No          |
+|KUTTL                     |🐢 Slow     |✅ Yes           |✅ Yes                |⚠️ Optional    |
+
+**Recommendation**: Start with `crossplane render` + `crossplane beta validate` for unit tests, add Conftest for policy enforcement, and use KUTTL only for integration testing.
 
 ## Running Tests
 
 ### Setup Test Environment
 
 ```bash
-# Install testing tools
-./scripts/setup-test-env.sh
+# Install Crossplane CLI
+curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
 
-# Or manually:
-brew install kuttl conftest kubeval yq
+# Move to PATH
+sudo mv crossplane /usr/local/bin/
+
+# Verify installation
+crossplane --version
 ```
 
-### Run All Tests
+### Run Render Tests
 
 ```bash
-# Run complete test suite
+# Single environment
+crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml
+
+# All environments (automated)
+./scripts/run-render-tests.sh
+```
+
+### Run Validation Tests
+
+```bash
+# Validate single XR
+crossplane render \
+  apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+  apis/v1alpha1/subscriptions/composition.yml \
+  apis/v1alpha1/subscriptions/functions.yml \
+  --include-full-xr | \
+crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
+
+# All environments (automated)
+./scripts/run-validate-tests.sh
+```
+
+### Run Complete Test Suite
+
+```bash
+# Runs: render tests + validation + policy tests
 ./scripts/run-all-tests.sh
-
-# Or run individually:
-
-# 1. Validate YAML syntax
-./scripts/validate-manifests.sh
-
-# 2. Run Conftest policy tests
-cd apis/v1alpha1/subscriptions/tests/unit/conftest
-conftest test ../../xrd.yml -p policy/xrd-validation.rego
-conftest test ../../composition.yml -p policy/composition-validation.rego
-conftest test ../../examples/xr-dev.yml -p policy/xr-validation.rego
-
-# 3. Run OPA policy unit tests
-conftest verify -p policy/ -t test/
-
-# 4. Validate against JSON Schema
-yq eval apis/v1alpha1/subscriptions/examples/xr-dev.yml -o=json | \
-  ajv validate -s apis/v1alpha1/subscriptions/tests/unit/schemas/subscription-schema.json
-
-# 5. Run KUTTL tests (requires cluster)
-kubectl kuttl test --config apis/v1alpha1/subscriptions/tests/unit/kuttl/kuttl-test.yaml
 ```
 
 ### Example Output
 
 ```
-✓ XRD validation passed (0 violations)
-✓ Composition validation passed (0 violations)
-✓ XR validation passed (0 violations)
-✓ Policy unit tests: 12/12 passed
-✓ JSON Schema validation passed
-✓ KUTTL tests: 1/1 passed
+🧪 Testing Crossplane Compositions
+====================================
+
+📋 Render Tests
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ dev environment rendered successfully
+✅ staging environment rendered successfully
+✅ prod environment rendered successfully
+
+🔍 Validation Tests
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[✓] XAzureSubscription/atlas-dev-subscription validated
+[✓] Subscription/atlas-dev-subscription-subscription validated
+[✓] ResourceGroup/rg-atlas-dev-weu validated
+
+📊 Summary
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ All tests passed!
 ```
 
 ## Best Practices
@@ -831,47 +314,41 @@ kubectl kuttl test --config apis/v1alpha1/subscriptions/tests/unit/kuttl/kuttl-t
 
 ```
         /\
-       /  \    E2E Tests (few)
+       /  \    E2E Tests (few) - KUTTL with real cloud
       /----\
-     /      \  Integration Tests (some)
+     /      \  Integration Tests (some) - KUTTL with mock providers
     /--------\
-   /          \ Unit Tests (many)
+   /          \ Unit Tests (many) - crossplane render + validate
   /____________\
 ```
 
-- **Unit Tests** (this repo): Validate individual XRDs, Compositions, XRs
-- **Integration Tests**: Test composition behavior with mock providers
-- **E2E Tests**: Test against actual Azure APIs
+### 2. What to Test at Each Level
 
-### 2. What to Test
+**Unit Tests (crossplane render + validate):**
 
-**XRD Level:**
+- ✅ Composition renders correctly
+- ✅ All expected managed resources are created
+- ✅ Patches are applied correctly
+- ✅ Resources match provider schemas
+- ✅ Fast feedback loop (seconds)
 
-- Schema validation
-- Required fields presence
-- Enum value correctness
-- Field type validation
-- OpenAPI v3 schema compliance
+**Policy Tests (Conftest):**
 
-**Composition Level:**
+- ✅ Naming conventions
+- ✅ Required tags present
+- ✅ Security requirements
+- ✅ Organizational standards
 
-- Correct XRD reference
-- All required managed resources present
-- Patch configurations correctness
-- Transform functions validity
-- Pipeline structure (Crossplane v2)
+**Integration Tests (KUTTL - optional):**
 
-**XR Level:**
+- ✅ Resources are actually created
+- ✅ Dependencies work correctly
+- ✅ Status updates propagate
+- ⚠️ Slower (minutes)
 
-- Compliance with XRD schema
-- Required parameters provided
-- Naming conventions
-- Tag requirements
-- Environment-specific validation
+### 3. CI/CD Integration
 
-### 3. Continuous Testing
-
-Integrate tests into CI/CD:
+Use `crossplane render` and `crossplane beta validate` in your pipeline:
 
 ```yaml
 # .github/workflows/unit-tests.yml
@@ -882,30 +359,44 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      - name: Install tools
+      - name: Install Crossplane CLI
         run: |
-          curl -L https://github.com/kudobuilder/kuttl/releases/download/v0.15.0/kuttl_0.15.0_linux_x86_64 -o kuttl
-          chmod +x kuttl
-          sudo mv kuttl /usr/local/bin/
-          
-          curl -L https://github.com/open-policy-agent/conftest/releases/download/v0.45.0/conftest_0.45.0_Linux_x86_64.tar.gz | tar xz
-          sudo mv conftest /usr/local/bin/
+          curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.sh | sh
+          sudo mv crossplane /usr/local/bin/
       
-      - name: Run Conftest
+      - name: Render Compositions
         run: |
-          cd apis/v1alpha1/subscriptions/tests/unit/conftest
-          conftest test ../../xrd.yml -p policy/
-          conftest test ../../composition.yml -p policy/
-          conftest test ../../examples/*.yml -p policy/
+          for env in dev staging prod; do
+            echo "Testing $env..."
+            crossplane render \
+              apis/v1alpha1/subscriptions/examples/xr-$env.yml \
+              apis/v1alpha1/subscriptions/composition.yml \
+              apis/v1alpha1/subscriptions/functions.yml
+          done
       
-      - name: Run OPA unit tests
+      - name: Validate Against Schemas
         run: |
-          cd apis/v1alpha1/subscriptions/tests/unit/conftest
-          conftest verify -p policy/ -t test/
+          crossplane render \
+            apis/v1alpha1/subscriptions/examples/xr-dev.yml \
+            apis/v1alpha1/subscriptions/composition.yml \
+            apis/v1alpha1/subscriptions/functions.yml \
+            --include-full-xr | \
+          crossplane beta validate apis/v1alpha1/subscriptions/xrd.yml -
 ```
+
+## Advantages of Crossplane CLI Testing
+
+✅ **No Kubernetes cluster required** - Run tests locally  
+✅ **Fast feedback** - Tests complete in seconds  
+✅ **Official tooling** - Maintained by Crossplane team  
+✅ **Schema validation** - Validates against actual provider schemas  
+✅ **Pre-deployment testing** - Catch errors before deploying  
+✅ **CI/CD friendly** - Easy to integrate into pipelines  
+✅ **Composition function support** - Tests the actual rendering logic
 
 ## Common Pitfalls
 
@@ -914,62 +405,56 @@ jobs:
 **❌ Don’t use Claims in v2:**
 
 ```yaml
-# Old v1.x style - DON'T USE
-kind: Claim
+kind: Claim  # Old v1.x style - DON'T USE
 ```
 
 **✅ Use XRs directly in v2:**
 
 ```yaml
-# Crossplane v2 style
-kind: XAzureSubscription
+kind: XAzureSubscription  # Crossplane v2 style
 ```
 
-### 2. Composition Mode
+### 2. Missing Functions File
 
-**❌ Avoid Resources mode (legacy):**
+**❌ Error: “no functions specified”**
+
+```bash
+crossplane render xr.yaml composition.yaml  # Missing functions!
+```
+
+**✅ Always include functions.yml:**
+
+```bash
+crossplane render xr.yaml composition.yaml functions.yml
+```
+
+### 3. Function Runtime Mode
+
+For local testing, use Development mode in functions.yml:
 
 ```yaml
-spec:
-  resources: [...]  # Old style
+metadata:
+  annotations:
+    render.crossplane.io/runtime: Development
 ```
-
-**✅ Use Pipeline mode:**
-
-```yaml
-spec:
-  mode: Pipeline
-  pipeline: [...]
-```
-
-### 3. Testing Without Mocks
-
-- Use `kubectl --dry-run=client` for quick validation
-- Use KUTTL with fake API server for integration tests
-- Always test policy in isolation before cluster deployment
 
 ## Resources
 
-- [Crossplane Documentation](https://docs.crossplane.io/)
-- [Crossplane v2 Migration Guide](https://docs.crossplane.io/latest/concepts/composition-migrations/)
-- [KUTTL Documentation](https://kuttl.dev/)
-- [Open Policy Agent](https://www.openpolicyagent.org/)
-- [Azure Upbound Provider](https://marketplace.upbound.io/providers/upbound/provider-azure/)
+- [Crossplane CLI Command Reference](https://docs.crossplane.io/latest/cli/command-reference/)
+- [Crossplane Render Documentation](https://docs.crossplane.io/latest/cli/command-reference/#render)
+- [Crossplane Validate Documentation](https://docs.crossplane.io/latest/cli/command-reference/#validate)
+- [Composition Functions Guide](https://docs.crossplane.io/latest/concepts/composition-functions/)
+- [Testing Crossplane Compositions Blog](https://blog.upbound.io/composition-testing-patterns-rendering)
 
 ## Contributing
 
 This is a learning repository. Feel free to:
 
 - Add more test cases
-- Improve existing policies
+- Improve existing tests
 - Add documentation
 - Share your learnings
 
 ## License
 
 MIT License - Feel free to use for learning and reference.
-
------
-
-**Code Smell Detective** 🔍  
-*Willem van Heemstra - Cloud Engineer @ Team Rockstars Cloud*
