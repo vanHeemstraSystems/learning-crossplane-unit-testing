@@ -1,4 +1,4 @@
-# learning-crossplane-unit-testing
+# Learning Crossplane Unit Testing
 
 A comprehensive learning repository for unit testing Crossplane v2 compositions, XRDs (CompositeResourceDefinitions), and XRs (Composite Resources) using the Crossplane CLI.
 
