@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../../.." && pwd)"
 
 echo "🧪 Testing dev environment XR with crossplane render..."
 
@@ -16,10 +16,15 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Render the composition
-OUTPUT=$(crossplane render \
+if ! OUTPUT=$(crossplane render \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/examples/xr-dev.yml" \
   "$REPO_ROOT/apis/v1alpha1/subscriptions/composition.yml" \
-  "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" 2>&1)
+  "$REPO_ROOT/apis/v1alpha1/subscriptions/functions/patch-and-transform.yml" 2>&1); then
+  echo -e "${RED}❌ crossplane render failed${NC}"
+  echo ""
+  echo "$OUTPUT"
+  exit 1
+fi
 
 TESTS_PASSED=0
 TESTS_FAILED=0

@@ -356,7 +356,9 @@ sudo mv crossplane /usr/local/bin/
 ### Issue: Functions not rendering
 
 **Solution:**
-Ensure `functions/patch-and-transform.yml` has the Development runtime annotation:
+Ensure Docker is running (default `crossplane render` runtime uses Docker).
+
+If you’re developing a Function and want to connect to a locally running Function server, set the Development runtime annotation in `functions/patch-and-transform.yml`:
 ```yaml
 metadata:
   annotations:

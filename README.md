@@ -115,8 +115,6 @@ apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
 metadata:
   name: function-patch-and-transform
-  annotations:
-    render.crossplane.io/runtime: Development
 spec:
   package: xpkg.upbound.io/crossplane-contrib/function-patch-and-transform:v0.5.0
 ```
@@ -444,7 +442,7 @@ crossplane render xr.yaml composition.yaml functions/patch-and-transform.yml
 
 ### 3. Function Runtime Mode
 
-For local testing, use Development mode in `functions/patch-and-transform.yml`:
+By default, `crossplane render` runs Functions using Docker. If you’re developing a Function and want to connect to a locally running gRPC Function server, you can set Development mode in `functions/patch-and-transform.yml`:
 
 ```yaml
 metadata:

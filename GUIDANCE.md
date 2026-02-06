@@ -180,7 +180,7 @@ If you keep the same API group/kind, the tests will run immediately. If you rena
 
 - **Render fails with “no functions specified / function not found”**
   - Ensure `apis/v1alpha1/subscriptions/functions/patch-and-transform.yml` exists
-  - Ensure it contains `render.crossplane.io/runtime: Development`
+  - Ensure Docker is running (default `crossplane render` runtime uses Docker)
   - Ensure Composition references `functionRef.name: function-patch-and-transform`
 
 - **Validate fails**
