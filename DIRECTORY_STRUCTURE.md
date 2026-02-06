@@ -9,8 +9,8 @@ learning-crossplane-unit-testing/
 ├── README.md
 ├── .github/
 │   └── workflows/
-│       ├── crossplane-cli-tests.yml     ← RECOMMENDED (Crossplane CLI f ...)
-│       └── unit-tests.yml               ← OPTIONAL (includes KUTTL, re..)
+│       ├── crossplane-cli-tests.yml     ← RECOMMENDED (Crossplane CLI focused)
+│       └── unit-tests.yml               ← OPTIONAL (includes KUTTL, requires cluster)
 ├── apis/
 │   └── v1alpha1/
 │       └── subscriptions/
